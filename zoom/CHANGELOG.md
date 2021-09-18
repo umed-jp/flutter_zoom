@@ -1,3 +1,6 @@
+## 1.0.2+3
+* jwtToken to optional, add back "AppKey&AppSecrect"
+
 ## 1.0.2+2
 * folders("ios-sdk" and "android/libs")  missing bug fixed
 
