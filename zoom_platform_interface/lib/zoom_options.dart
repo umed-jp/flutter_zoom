@@ -1,6 +1,8 @@
 class ZoomOptions {
   String domain;
-  String jwtToken;
+  String? jwtToken;
+  String? appKey;
+  String? appSecret;
   String? language; //--for web
   bool? showMeetingHeader; //--for web
   bool? disableInvite; //--for web
@@ -31,7 +33,9 @@ class ZoomOptions {
 
   ZoomOptions(
       {required this.domain,
-      required this.jwtToken,
+      this.jwtToken,
+      this.appKey,
+      this.appSecret,
       this.language = "en-US",
       this.showMeetingHeader = true,
       this.disableInvite = false,
