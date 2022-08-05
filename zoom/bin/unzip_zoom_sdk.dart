@@ -1,45 +1,49 @@
+import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 import 'package:archive/archive.dart';
-//import 'package:dio/dio.dart';
 
-void main(List<String> args) async {
+void main(List args) async {
   var location = Platform.script.toString();
+  var isNewFlutter = location.contains(".snapshot");
+  if (isNewFlutter) {
+    var sp = Platform.script.toFilePath();
+    var sd = sp.split(Platform.pathSeparator);
+    sd.removeLast();
+    var scriptDir = sd.join(Platform.pathSeparator);
+    var packageConfigPath = [scriptDir, '..', '..', '..', 'package_config.json']
+        .join(Platform.pathSeparator);
+    var jsonString = File(packageConfigPath).readAsStringSync();
+    Map<String, dynamic> packages = jsonDecode(jsonString);
+    var packageList = packages["packages"];
+    String? zoomFileUri;
+    for (var package in packageList) {
+      if (package["name"] == "zoom") {
+        zoomFileUri = package["rootUri"];
+        break;
+      }
+    }
+    if (zoomFileUri == null) {
+      print("flutter_zoom_sdk package not found!");
+      return;
+    }
+    location = zoomFileUri;
+  }
   if (Platform.isWindows) {
     location = location.replaceFirst("file:///", "");
   } else {
     location = location.replaceFirst("file://", "");
   }
-  location = location.replaceFirst("/bin/unzip_zoom_sdk.dart", "");
-
-  // var filename =
-  //     location + '/ios-sdk/MobileRTC${(args.length == 0) ? "" : "-dev"}.zip';
+  if (!isNewFlutter) {
+    location = location.replaceFirst("/bin/unzip_zoom_sdk.dart", "");
+  }
 
   await checkAndDownloadSDK(location);
-  // print('Decompressing ' + filename);
-
-  // final bytes = File(filename).readAsBytesSync();
-
-  // final archive = ZipDecoder().decodeBytes(bytes);
-
-  // var current = new File(location + '/ios/MobileRTC.framework/MobileRTC');
-  // var exist = await current.exists();
-  // if (exist) current.deleteSync();
-
-  // for (final file in archive) {
-  //   final filename = file.name;
-  //   if (file.isFile) {
-  //     final data = file.content as List<int>;
-  //     File(location + '/ios/MobileRTC.framework/' + filename)
-  //       ..createSync(recursive: true)
-  //       ..writeAsBytesSync(data);
-  //   }
-  // }
 
   print('Complete');
 }
 
-Future<void> checkAndDownloadSDK(String location) async {
+Future checkAndDownloadSDK(String location) async {
   var iosSDKFile = location +
       '/ios/MobileRTC.xcframework/ios-arm64_armv7/MobileRTC.framework/MobileRTC';
   bool exists = await File(iosSDKFile).exists();
@@ -78,14 +82,11 @@ Future<void> checkAndDownloadSDK(String location) async {
   }
 }
 
-Future<void> downloadFile(Uri uri, String savePath) async {
+Future downloadFile(Uri uri, String savePath) async {
   print('Download ${uri.toString()} to $savePath');
-  // var dio = Dio();
-  // dio.options.connectTimeout = 1000000;
-  // dio.options.receiveTimeout = 1000000;
-  // dio.options.sendTimeout = 1000000;
-  // await dio.downloadUri(uri, savePath);
+  File destinationFile = await File(savePath).create(recursive: true);
+
   final request = await HttpClient().getUrl(uri);
   final response = await request.close();
-  await response.pipe(File(savePath).openWrite());
+  await response.pipe(destinationFile.openWrite());
 }
