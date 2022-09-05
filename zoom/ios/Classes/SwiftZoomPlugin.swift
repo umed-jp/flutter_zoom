@@ -82,7 +82,7 @@ public class SwiftZoomPlugin: NSObject, FlutterPlugin,FlutterStreamHandler , Mob
     
     public func meetingStatus(call: FlutterMethodCall, result: FlutterResult) {
         
-        print(MobileRTC)
+        //print(MobileRTC)
         let meetingService = MobileRTC.shared().getMeetingService()
         
         print("meeting Service: \(meetingService)")
